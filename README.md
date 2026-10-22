@@ -61,47 +61,33 @@ dependency-free PHP 8 application (no Composer packages required).
 - [Composer](https://getcomposer.org) — only for PHPMailer, used to send password
   reset emails
 
-## Setup
+## Getting started
 
-1. Install the dependencies:
+```bash
+git clone https://github.com/webhossen/studymate.git
+cd studymate
+composer install          # PHPMailer, for password reset emails
+cp .env.example .env     # then edit the database details
+php database/migrate.php # create the tables
+php database/setup.php    # optional demo data
+```
 
-   ```bash
-   composer install
-   ```
+Open <http://localhost/studymate/> — or [the full deployment
+guide](DEPLOYMENT.md) for setting up a domain, a hosted server, or Docker.
 
-   The only package is `phpmailer/phpmailer`. Without it the application still
-   runs, but password reset emails fall back to PHP's `mail()`.
+### The two ways to host it
 
-2. Copy the configuration and edit it:
+The application detects the layout from `APP_URL`, so no configuration change
+is needed beyond setting it correctly:
 
-   ```bash
-   cp .env.example .env
-   ```
+| Setup | `APP_URL` | Assets are served from |
+|---|---|---|
+| Document root = project folder, app in a sub-folder | `https://example.com/studymate` | `/studymate/public/assets/…` |
+| Document root = `public/` (**recommended**) | `https://studymate.example.com` | `/assets/…` |
 
-   `.env` holds the database credentials, `APP_URL` and the app name. It is
-   **not** committed to the repository.
+Pointing the document root at `public/` keeps `.env`, `app/` and `storage/`
+outside the web, which is the safer arrangement for anything internet-facing.
 
-3. Create the database and apply the schema:
-
-   ```bash
-   php database/migrate.php
-   ```
-
-   Migrations live in `database/migrations/` and are tracked in the
-   `migrations_applied` table, so `migrate.php` is safe to re-run.
-
-4. Seed a demo dataset (optional):
-
-   ```bash
-   php database/setup.php
-   ```
-
-   This creates a department, a class with a subject, two students, a teacher,
-   an administrator, an enrolment and a sample assignment.
-
-5. Point the web server document root at the project so that
-   `http://localhost/studymate/` reaches `index.php`, and make sure
-   `mod_rewrite` is enabled (see `.htaccess`).
 
 ## Email
 
@@ -156,7 +142,12 @@ resources/views/   Templates, layouts and partials
 routes/           web.php and api.php route tables
 storage/          Uploads and logs (not committed)
 tools/            Composer binary (not committed)
+docs/screenshots/ README screenshots
 ```
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for the complete guide: local setup,
+database creation, shared hosting, VPS/Nginx, moving a database, a production
+checklist and troubleshooting.
 
 ## Features
 

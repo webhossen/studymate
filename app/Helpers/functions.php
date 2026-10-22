@@ -31,14 +31,28 @@ if (!function_exists('url')) {
 if (!function_exists('asset')) {
     /**
      * Resolve a file inside public/assets to a browser URL.
-     * asset('css/app.css') -> {APP_URL}/public/assets/css/app.css
+     *
+     * The application can be installed two ways and the asset path differs:
+     *
+     *  - Document root is the project folder and the app lives in a
+     *    sub-folder (APP_URL = http://host/studymate). The assets are
+     *    reachable at http://host/studymate/public/assets/...
+     *
+     *  - Document root is the public folder (APP_URL = http://host). The
+     *    assets are reachable at http://host/assets/...
      *
      * A cache-busting query string is appended so a changed stylesheet or
      * script is never served from the browser's cache.
      */
     function asset(string $path): string {
         $path = ltrim($path, '/');
-        $url = url('public/assets/' . $path);
+        $base = rtrim((string) (parse_url(app_url(), PHP_URL_PATH) ?: ''), '/');
+
+        /* When there is no sub-folder the public directory *is* the root, so
+           the assets sit directly under it. Otherwise the public folder is
+           still reachable under the application's own path. */
+        $prefix = ($base === '' || $base === '/') ? '' : 'public';
+        $url = rtrim(app_url(), '/') . '/' . ($prefix !== '' ? $prefix . '/' : '') . 'assets/' . $path;
 
         $file = defined('APP_ROOT') ? APP_ROOT . '/public/assets/' . $path : null;
         if ($file !== null && is_file($file)) {

@@ -1,7 +1,9 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /studymate/
 
+    # Serve existing files and directories as-is, and route everything else
+    # to the front controller. No RewriteBase is set, so the rules work at
+    # any install path (a sub-folder, a domain root, or a dedicated vhost).
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^ index.php [L]
