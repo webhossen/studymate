@@ -1,0 +1,21 @@
+# Local configuration and secrets
+.env
+
+# Uploaded files and generated data
+/storage/private_uploads/
+/storage/logs/
+/storage/*.log
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Local test artefacts
+/test_app.php

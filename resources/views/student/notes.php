@@ -1,0 +1,12 @@
+<div class="sm-page-head">
+  <div>
+    <h1 class="sm-page-title">Notes</h1>
+  </div>
+  <div class="sm-page-actions"><button class="btn btn-sm-navy" onclick="document.getElementById('noteForm').scrollIntoView({behavior:'smooth'})">+ New Note</button></div>
+</div>
+<div class="sm-card mb-4"><div class="sm-card-body"><form method="post" action="<?= e(url('student/notes')) ?>" id="noteForm" novalidate><?= csrf_input() ?>
+  <div class="row g-3 mb-3"><div class="col-md-5"><label class="form-label" for="title">Title</label><input type="text" name="title" id="title" class="form-control" placeholder="Note title" required></div><div class="col-md-4"><label class="form-label" for="subject">Subject</label><input type="text" name="subject" id="subject" class="form-control" placeholder="Subject"></div><div class="col-md-3 d-flex align-items-end"><button type="submit" class="btn btn-sm-navy">Save</button></div></div><div class="form-group mb-3"><label class="form-label" for="content">Content</label><textarea name="content" id="content" class="form-control" rows="5" required></textarea></div></form></div></div>
+<div class="sm-card"><div class="sm-card-header">Your Notes</div><div class="sm-card-body">
+  <div class="table-wrap"><table class="table table-hover align-middle mb-0">
+    <thead><tr><th>Title</th><th>Subject</th><th>Updated</th><th class="text-end">Actions</th></tr></thead>
+    <tbody><?php foreach ($notes ?? [] as $n): ?><tr><td><?= e($n['title']) ?></td><td><?= e($n['subject'] ?? '-') ?></td><td><?= e(date('M j, Y', strtotime($n['updated_at']))) ?></td><td class="text-end"><a href="<?= e(url('student/notes/' . $n['id'])) ?>" class="btn btn-sm btn-outline-navy">View</a><form method="post" action="<?= e(url('student/notes/' . $n['id'] . '/delete')) ?>" style="display:inline;" data-confirm="Delete the note “<?= e($n['title']) ?>”? This cannot be undone." data-confirm-title="Delete note" data-confirm-label="Delete note" data-confirm-tone="danger"><?= csrf_input() ?><button type="submit" class="btn btn-sm btn-outline-danger">Delete</button></form></td></tr><?php endforeach; ?><?php if (empty($notes)): ?><tr><td colspan="4" class="text-center text-muted py-4">No notes found.</td></tr><?php endif; ?></tbody></table></div></div></div>

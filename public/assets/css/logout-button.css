@@ -1,0 +1,300 @@
+/* ==========================================================================
+   StudyMate — animated logout button
+   Adapted from the "Animated logout button" component.
+   Every rule is scoped to .logoutButton so the global body/svg resets from
+   the original stylesheet cannot leak into the rest of the application.
+   ========================================================================== */
+
+.logoutButton {
+  /* Theme-driven colours */
+  --logout-panel: var(--sm-bg-elevated, #141f38);
+  --logout-ink: var(--sm-text, #e8eefb);
+  --logout-accent: var(--sm-primary, #6366f1);
+
+  /*
+   * These must be plain numbers, not lengths: the rules below use
+   * calc(var(--figure-duration) * 1ms), and multiplying a length by a length
+   * is invalid — which would silently drop the whole transition declaration
+   * and make the figure jump instead of animate.
+   */
+  --figure-duration: 100;
+  --transform-figure: none;
+  --walking-duration: 100;
+  --transform-arm1: none;
+  --transform-wrist1: none;
+  --transform-arm2: none;
+  --transform-wrist2: none;
+  --transform-leg1: none;
+  --transform-calf1: none;
+  --transform-leg2: none;
+  --transform-calf2: none;
+
+  display: flex;
+  align-items: center;
+  background: none;
+  border: 1px solid var(--sm-card-border, rgba(148, 163, 184, 0.16));
+  border-radius: var(--sm-radius-sm, 0.75rem);
+  color: var(--logout-ink);
+  cursor: pointer;
+  font-family: var(--bs-font-sans-serif, system-ui, sans-serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  height: 40px;
+  outline: none;
+  overflow: hidden;
+  padding: 0 0 0 16px;
+  perspective: 100px;
+  position: relative;
+  text-align: left;
+  width: 100%;
+  max-width: 168px;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color var(--sm-transition, 180ms cubic-bezier(0.4, 0, 0.2, 1)),
+    box-shadow var(--sm-transition, 180ms cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.logoutButton:hover {
+  border-color: var(--sm-danger, #ef4444);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.logoutButton:focus-visible {
+  border-color: var(--sm-danger, #ef4444);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+.logoutButton::before {
+  background-color: var(--logout-panel);
+  border-radius: calc(var(--sm-radius-sm, 0.75rem) - 1px);
+  content: "";
+  display: block;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  transform: none;
+  transition: transform 50ms ease;
+  width: 100%;
+  z-index: 2;
+}
+
+.logoutButton:hover .door {
+  transform: rotateY(20deg);
+}
+
+.logoutButton:active::before {
+  transform: scale(0.96);
+}
+
+.logoutButton:active .door {
+  transform: rotateY(28deg);
+}
+
+.logoutButton.clicked::before {
+  transform: none;
+}
+
+.logoutButton.clicked .door {
+  transform: rotateY(35deg);
+}
+
+.logoutButton.door-slammed .door {
+  transform: none;
+  transition: transform 100ms ease-in 250ms;
+}
+
+.logoutButton.falling {
+  animation: sm-logout-shake 200ms linear;
+}
+
+.logoutButton.falling .bang {
+  animation: sm-logout-flash 300ms linear;
+}
+
+.logoutButton.falling .figure {
+  animation: sm-logout-spin 1000ms infinite linear;
+  /* Slides out of the button while spinning, so the fall is actually seen. */
+  bottom: -70px;
+  opacity: 1;
+  right: 34px;
+  transition: transform calc(var(--figure-duration) * 1ms) linear,
+    bottom calc(var(--figure-duration) * 1ms) cubic-bezier(0.7, 0.1, 1, 1) 100ms,
+    opacity calc(var(--figure-duration) * 0.25ms) linear calc(var(--figure-duration) * 0.75ms);
+  /* In front of the door, otherwise the closed panel hides the tumble. */
+  z-index: 6;
+}
+
+.logoutButton .button-text {
+  color: var(--logout-ink);
+  font-weight: 600;
+  position: relative;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+/* Scoped to the button so no other SVG in the app is affected */
+.logoutButton svg {
+  display: block;
+  position: absolute;
+}
+
+/*
+ * The figure needs clear space to the left of the door, otherwise the door
+ * panel covers it and the walk looks like the figure simply vanishing.
+ */
+.logoutButton .figure {
+  bottom: 4px;
+  fill: var(--logout-accent);
+  right: 34px;
+  transform: var(--transform-figure);
+  transition: transform calc(var(--figure-duration) * 1ms) cubic-bezier(0.2, 0.1, 0.8, 0.9);
+  width: 28px;
+  z-index: 4;
+}
+
+.logoutButton .door,
+.logoutButton .doorway {
+  bottom: 4px;
+  fill: var(--logout-ink);
+  right: 8px;
+  width: 30px;
+}
+
+.logoutButton .door {
+  transform: rotateY(20deg);
+  transform-origin: 100% 50%;
+  transform-style: preserve-3d;
+  transition: transform 200ms ease;
+  z-index: 5;
+}
+
+.logoutButton .door path {
+  fill: var(--logout-accent);
+  stroke: var(--logout-accent);
+  stroke-width: 4;
+}
+
+.logoutButton .doorway {
+  z-index: 3;
+}
+
+.logoutButton .bang {
+  fill: var(--logout-accent);
+  opacity: 0;
+}
+
+.logoutButton .arm1,
+.logoutButton .wrist1,
+.logoutButton .arm2,
+.logoutButton .wrist2,
+.logoutButton .leg1,
+.logoutButton .calf1,
+.logoutButton .leg2,
+.logoutButton .calf2 {
+  transition: transform calc(var(--walking-duration) * 1ms) ease-in-out;
+}
+
+.logoutButton .arm1 { transform: var(--transform-arm1); transform-origin: 52% 45%; }
+.logoutButton .wrist1 { transform: var(--transform-wrist1); transform-origin: 59% 55%; }
+.logoutButton .arm2 { transform: var(--transform-arm2); transform-origin: 47% 43%; }
+.logoutButton .wrist2 { transform: var(--transform-wrist2); transform-origin: 35% 47%; }
+.logoutButton .leg1 { transform: var(--transform-leg1); transform-origin: 47% 64.5%; }
+.logoutButton .calf1 { transform: var(--transform-calf1); transform-origin: 55.5% 71.5%; }
+.logoutButton .leg2 { transform: var(--transform-leg2); transform-origin: 43% 63%; }
+.logoutButton .calf2 { transform: var(--transform-calf2); transform-origin: 41.5% 73%; }
+
+@keyframes sm-logout-spin {
+  from { transform: rotate(0deg) scale(0.94); }
+  to { transform: rotate(359deg) scale(0.94); }
+}
+
+@keyframes sm-logout-shake {
+  0% { transform: rotate(-1deg); }
+  50% { transform: rotate(2deg); }
+  100% { transform: rotate(-1deg); }
+}
+
+@keyframes sm-logout-flash {
+  0% { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+
+/* The sidebar sits on a tinted surface, so the panel follows the theme. */
+html[data-theme="light"] .logoutButton,
+body.light-theme .logoutButton {
+  --logout-panel: #ffffff;
+  --logout-ink: #0f172a;
+}
+
+/* Inside the account dropdown the button blends into the menu surface. */
+.dropdown-menu .logoutButton {
+  --logout-panel: transparent;
+  width: 100%;
+  max-width: none;
+  border-color: transparent;
+  padding-left: 8px;
+}
+
+.dropdown-menu .logoutButton:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: transparent;
+}
+
+.dropdown-menu .logoutButton::before {
+  background-color: transparent;
+}
+
+.dropdown-menu .logoutButton .figure,
+.dropdown-menu .logoutButton .door path {
+  --logout-accent: var(--sm-danger, #ef4444);
+}
+
+.dropdown-menu .logoutButton .figure {
+  fill: var(--sm-danger, #ef4444);
+}
+
+/* Inside the confirmation popup the button is the primary action. */
+.logoutButton--dialog {
+  --logout-panel: var(--sm-bg-secondary, #0e1628);
+  --logout-ink: var(--sm-heading, #f6f8ff);
+  --logout-accent: var(--sm-danger, #ef4444);
+  width: 100%;
+  max-width: 220px;
+  margin-inline: auto;
+  height: 46px;
+  padding-left: 18px;
+  font-size: 0.9rem;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.logoutButton--dialog:hover {
+  border-color: var(--sm-danger, #ef4444);
+}
+
+.logoutButton--dialog .figure {
+  fill: var(--sm-danger, #ef4444);
+  bottom: 6px;
+  right: 34px;
+  width: 28px;
+}
+
+.logoutButton--dialog .door path {
+  fill: var(--sm-danger, #ef4444);
+  stroke: var(--sm-danger, #ef4444);
+}
+
+.logoutButton--dialog .door,
+.logoutButton--dialog .doorway {
+  bottom: 6px;
+  right: 8px;
+  width: 30px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logoutButton.falling,
+  .logoutButton.falling .bang,
+  .logoutButton.falling .figure {
+    animation: none !important;
+  }
+  .logoutButton.falling .figure { opacity: 0; }
+}
