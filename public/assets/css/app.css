@@ -1980,6 +1980,95 @@ html[data-theme="light"] .sm-section-badge { color: #4338ca; }
    13. AUTH PAGES
    ========================================================================== */
 
+/* Round icon above the auth card heading */
+.sm-auth-icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  line-height: 1;
+  background: var(--sm-primary-soft);
+  border: 1px solid rgba(99, 102, 241, 0.28);
+}
+
+.sm-auth-icon.is-danger {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Development-only note showing the generated reset link */
+.sm-dev-note {
+  padding: 0.85rem 1rem;
+  border-radius: var(--sm-radius);
+  border: 1px dashed rgba(245, 158, 11, 0.45);
+  background: rgba(245, 158, 11, 0.08);
+  font-size: 0.82rem;
+  color: var(--sm-text-muted);
+}
+
+.sm-dev-note-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--sm-warning);
+  margin-bottom: 0.35rem;
+}
+
+.sm-dev-note-link {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  word-break: break-all;
+  color: var(--sm-primary);
+}
+
+/* Live password rule checklist */
+.sm-pw-rules {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--sm-text-subtle);
+}
+
+.sm-pw-rules li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.15rem 0;
+  transition: color var(--sm-transition);
+}
+
+.sm-pw-rules li.is-met {
+  color: var(--sm-success);
+}
+
+.sm-pw-rule-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  line-height: 1;
+  background: var(--sm-bg-secondary);
+  border: 1px solid var(--sm-border);
+  color: var(--sm-text-subtle);
+  transition: background-color var(--sm-transition), color var(--sm-transition), border-color var(--sm-transition);
+}
+
+.sm-pw-rules li.is-met .sm-pw-rule-icon {
+  background: var(--sm-success);
+  border-color: var(--sm-success);
+  color: #fff;
+}
+
 .sm-auth-bg {
   position: relative;
   min-height: 100vh;

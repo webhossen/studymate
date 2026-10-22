@@ -43,6 +43,12 @@ dependency-free PHP 8 application (no Composer packages required).
 | :---: | :---: |
 | <img src="docs/screenshots/14-mobile-dashboard.png" alt="Mobile dashboard" width="240"> | <img src="docs/screenshots/15-mobile-nav.png" alt="Mobile navigation" width="240"> |
 
+### Password reset
+
+| Request a link | Choose a new password |
+| :---: | :---: |
+| <img src="docs/screenshots/17-forgot-sent.png" alt="Forgot password" width="420"> | <img src="docs/screenshots/18-reset-password.png" alt="Reset password" width="420"> |
+
 <p align="center">
   <img src="docs/screenshots/02-login.png" alt="StudyMate sign in" width="520">
 </p>
@@ -146,6 +152,8 @@ Screenshots live in [`docs/screenshots/`](docs/screenshots).
 - CSRF tokens on every state-changing form
 - output escaping through the `e()` helper
 - role-based route guards and per-file authorisation for downloads
+- password reset tokens are single-use, expire after an hour, and only a
+  SHA-256 hash of the token is stored
 - uploads validated by extension **and** sniffed MIME type, stored outside the
   document root and streamed through an authorised endpoint
 - all administrative and teaching writes recorded in the audit log

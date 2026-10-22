@@ -21,8 +21,26 @@ class Database {
                 error_log('DB connection failed: ' . $e->getMessage());
                 throw new \RuntimeException('Database connection failed', 500, $e);
             }
+            $this->syncTimezone();
         }
         return $this->pdo;
+    }
+
+    /**
+     * Align the database session timezone with PHP's.
+     *
+     * Without this, TIMESTAMP columns are interpreted in the server's local
+     * time while the application writes UTC strings, so values such as a
+     * token expiry can be hours out — which silently breaks anything that
+     * compares a PHP timestamp against NOW().
+     */
+    private function syncTimezone(): void {
+        try {
+            $offset = date('P'); // e.g. +02:00
+            $this->pdo->exec("SET time_zone = '" . $offset . "'");
+        } catch (\Throwable $e) {
+            error_log('Could not set the database session timezone: ' . $e->getMessage());
+        }
     }
 
     public function query(string $sql, array $params = []): PDOStatement {

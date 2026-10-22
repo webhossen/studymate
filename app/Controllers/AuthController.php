@@ -67,31 +67,136 @@ class AuthController extends Controller {
     }
 
     public function forgot(): void {
-        echo $this->view->renderWithLayout('auth.forgot', 'layouts/auth', ['title' => 'Forgot Password']);
+        /* Shown only in development, where there is usually no mail server. */
+        $devLink = $_SESSION['__reset_link'] ?? null;
+        unset($_SESSION['__reset_link']);
+        echo $this->view->renderWithLayout('auth.forgot', 'layouts/auth', [
+            'title' => 'Forgot Password', 'devLink' => $devLink,
+        ]);
     }
 
     public function sendReset(): void {
         $email = trim($_POST['email'] ?? '');
-        Session::info('If an account exists, a reset link has been logged to storage/logs/password-resets.log');
-        $logDir = APP_ROOT . '/storage/logs';
-        if (!is_dir($logDir)) @mkdir($logDir, 0770, true);
-        $link = url('password/reset/' . bin2hex(random_bytes(16)));
-        @file_put_contents($logDir . '/password-resets.log', date('Y-m-d H:i:s') . ' ' . $email . ' ' . $link . "\n", FILE_APPEND);
-        $this->redirect(url('login'));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Session::error('Enter a valid email address.');
+            $_SESSION['__old_input'] = ['email' => $email];
+            $this->redirect(url('password/forgot'));
+        }
+
+        $user = $this->db->first('SELECT id, email FROM users WHERE email = ? LIMIT 1', [$email]);
+        $link = null;
+
+        if ($user) {
+            /* Any outstanding token for this address is now void. */
+            $this->db->update('UPDATE password_resets SET used_at = NOW(), expires_at = NOW() WHERE email = ? AND used_at IS NULL', [$email]);
+
+            $token = bin2hex(random_bytes(32));
+            $link = url('password/reset/' . $token);
+
+            /* Only a hash of the token is stored, so a database leak cannot be
+               used to reset anybody's password. The expiry is computed by the
+               database so it always lines up with NOW(). */
+            $this->db->insert('INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))',
+                [$email, hash('sha256', $token)]);
+
+            $this->sendResetMail($user['email'], $link);
+        }
+
+        /* The same message either way, so we never reveal whether the account exists. */
+        Session::success('If an account exists for that address, a reset link has been sent.');
+
+        /* Without a mail server the link would be unreachable — surface it in
+           development so the flow can still be completed. */
+        if ($link !== null && app_debug()) {
+            $_SESSION['__reset_link'] = $link;
+        }
+
+        $this->redirect(url('password/forgot'));
     }
 
     public function resetForm(string $token): void {
-        echo $this->view->renderWithLayout('auth.reset', 'layouts/auth', ['title' => 'Reset Password', 'token' => $token]);
+        $valid = $this->findResetToken($token) !== null;
+        echo $this->view->renderWithLayout('auth.reset', 'layouts/auth', [
+            'title' => 'Reset Password', 'token' => $token, 'valid' => $valid,
+        ]);
     }
 
     public function resetPassword(string $token): void {
+        $record = $this->findResetToken($token);
+        if (!$record) {
+            Session::error('This reset link is invalid or has expired. Please request a new one.');
+            $this->redirect(url('password/forgot'));
+        }
+
         $password = $_POST['password'] ?? '';
+        $confirm = $_POST['password_confirm'] ?? '';
+
         if (strlen($password) < 8) {
-            Session::error('Password too short.');
+            Session::error('Your new password must be at least 8 characters long.');
+            $_SESSION['__old_input'] = ['token' => $token];
             $this->redirect(url('password/reset/' . $token));
         }
-        Session::success('Password reset.');
+        if ($password !== $confirm) {
+            Session::error('The two passwords do not match.');
+            $_SESSION['__old_input'] = ['token' => $token];
+            $this->redirect(url('password/reset/' . $token));
+        }
+
+        $user = $this->db->first('SELECT id FROM users WHERE email = ? LIMIT 1', [$record['email']]);
+        if (!$user) {
+            Session::error('That account no longer exists. Please request a new link.');
+            $this->redirect(url('password/forgot'));
+        }
+
+        $this->db->update('UPDATE users SET password = ? WHERE id = ?',
+            [password_hash($password, PASSWORD_DEFAULT), $user['id']]);
+
+        /* Consume this token and every other one for the account. */
+        $this->db->update('UPDATE password_resets SET used_at = NOW(), expires_at = NOW() WHERE email = ? AND used_at IS NULL',
+            [$record['email']]);
+
+        $this->audit('password.reset', 'users', (int) $user['id']);
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
+
+        Session::success('Your password has been reset. You can sign in with it now.');
         $this->redirect(url('login'));
+    }
+
+    /** Find a usable reset token. Only the hash is ever compared. */
+    private function findResetToken(string $token): ?array {
+        if ($token === '') return null;
+        return $this->db->first(
+            'SELECT * FROM password_resets WHERE token = ? AND used_at IS NULL AND expires_at > NOW() LIMIT 1',
+            [hash('sha256', $token)]
+        );
+    }
+
+    /**
+     * Deliver the reset link by email, and always record it in the log so it
+     * can be retrieved when no mail server is configured.
+     */
+    private function sendResetMail(string $email, string $link): bool {
+        $appName = app_name();
+        $host = parse_url(app_url(), PHP_URL_HOST) ?: 'localhost';
+        $subject = 'Reset your ' . $appName . ' password';
+        $body = "Hello,\n\nWe received a request to reset the password for your {$appName} account.\n\n"
+              . "Open the link below to choose a new password:\n{$link}\n\n"
+              . "The link is valid for one hour. If you did not request a password reset you can ignore this email.\n";
+
+        $sent = @mail($email, $subject, $body, 'From: no-reply@' . $host);
+
+        $logDir = APP_ROOT . '/storage/logs';
+        if (!is_dir($logDir)) @mkdir($logDir, 0770, true);
+        @file_put_contents(
+            $logDir . '/password-resets.log',
+            date('Y-m-d H:i:s') . ' ' . $email . ' ' . $link . ' ' . ($sent ? 'sent' : 'logged') . "\n",
+            FILE_APPEND
+        );
+
+        return $sent;
     }
 
     private function safeUrl(string $url): string {
