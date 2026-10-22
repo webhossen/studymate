@@ -3,6 +3,50 @@
 Academic management and student productivity for schools and colleges — a
 dependency-free PHP 8 application (no Composer packages required).
 
+[![PHP](https://img.shields.io/badge/PHP-8.0%2B-777bb4?style=flat-square&logo=php&logoColor=white)](https://www.php.net/)
+[![MySQL](https://img.shields.io/badge/MySQL-10.4%2B-00758F?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![License](https://img.shields.io/badge/license-MIT-8b5cf6?style=flat-square)](LICENSE)
+
+<p align="center">
+  <img src="docs/screenshots/01-landing.png" alt="StudyMate landing page" width="820">
+</p>
+
+## Screenshots
+
+### Student workspace
+
+| Dashboard | Focus timer | Assignments |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/03-student-dashboard.png" alt="Student dashboard" width="330"> | <img src="docs/screenshots/04-focus-timer.png" alt="Focus timer" width="330"> | <img src="docs/screenshots/05-student-assignments.png" alt="Student assignments" width="330"> |
+
+### Teacher workspace
+
+| Dashboard | Attendance | Resources |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/07-teacher-dashboard.png" alt="Teacher dashboard" width="330"> | <img src="docs/screenshots/08-teacher-attendance.png" alt="Teacher attendance" width="330"> | <img src="docs/screenshots/09-teacher-resources.png" alt="Teacher resources" width="330"> |
+
+### Administration
+
+| Users | Audit log |
+| :---: | :---: |
+| <img src="docs/screenshots/10-admin-users.png" alt="Admin users" width="420"> | <img src="docs/screenshots/11-admin-audit-log.png" alt="Admin audit log" width="420"> |
+
+### Notifications &amp; confirmation
+
+| Toast notifications | Confirmation dialog |
+| :---: | :---: |
+| <img src="docs/screenshots/12-toasts.png" alt="Toast notifications" width="420"> | <img src="docs/screenshots/13-logout-popup.png" alt="Logout confirmation" width="420"> |
+
+### Mobile
+
+| Dashboard | Navigation drawer |
+| :---: | :---: |
+| <img src="docs/screenshots/14-mobile-dashboard.png" alt="Mobile dashboard" width="240"> | <img src="docs/screenshots/15-mobile-nav.png" alt="Mobile navigation" width="240"> |
+
+<p align="center">
+  <img src="docs/screenshots/02-login.png" alt="StudyMate sign in" width="520">
+</p>
+
 ## Requirements
 
 - PHP 8.0+ with PDO MySQL
@@ -94,6 +138,8 @@ The UI is built on a small design system in `public/assets/css/app.css`:
 
 `test_desktop.php` is a self-contained regression check for the design system
 and can be run from the CLI.
+
+Screenshots live in [`docs/screenshots/`](docs/screenshots).
 
 ## Security
 
