@@ -58,10 +58,21 @@ dependency-free PHP 8 application (no Composer packages required).
 - PHP 8.0+ with PDO MySQL
 - MySQL / MariaDB 10.4+
 - Apache with `mod_rewrite` (or any web server that can route to `index.php`)
+- [Composer](https://getcomposer.org) — only for PHPMailer, used to send password
+  reset emails
 
 ## Setup
 
-1. Copy the configuration and edit it:
+1. Install the dependencies:
+
+   ```bash
+   composer install
+   ```
+
+   The only package is `phpmailer/phpmailer`. Without it the application still
+   runs, but password reset emails fall back to PHP's `mail()`.
+
+2. Copy the configuration and edit it:
 
    ```bash
    cp .env.example .env
@@ -70,7 +81,7 @@ dependency-free PHP 8 application (no Composer packages required).
    `.env` holds the database credentials, `APP_URL` and the app name. It is
    **not** committed to the repository.
 
-2. Create the database and apply the schema:
+3. Create the database and apply the schema:
 
    ```bash
    php database/migrate.php
@@ -79,7 +90,7 @@ dependency-free PHP 8 application (no Composer packages required).
    Migrations live in `database/migrations/` and are tracked in the
    `migrations_applied` table, so `migrate.php` is safe to re-run.
 
-3. Seed a demo dataset (optional):
+4. Seed a demo dataset (optional):
 
    ```bash
    php database/setup.php
@@ -88,9 +99,37 @@ dependency-free PHP 8 application (no Composer packages required).
    This creates a department, a class with a subject, two students, a teacher,
    an administrator, an enrolment and a sample assignment.
 
-4. Point the web server document root at the project so that
+5. Point the web server document root at the project so that
    `http://localhost/studymate/` reaches `index.php`, and make sure
    `mod_rewrite` is enabled (see `.htaccess`).
+
+## Email
+
+Password reset links are sent with **PHPMailer**. Configure the transport in
+`.env`:
+
+```ini
+# smtp | mail | log
+MAIL_TRANSPORT=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your.address@gmail.com
+MAIL_PASSWORD=your-app-password
+# tls | ssl | none
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=no-reply@yourdomain.com
+MAIL_FROM_NAME=StudyMate
+```
+
+- `smtp` — the normal choice for a hosted server
+- `mail` — hand the message to the local MTA via PHP's `mail()`
+- `log` — write the message to `storage/logs/mail.log` and send nothing
+  (handy while developing)
+
+For Gmail, use an **App Password** rather than your account password.
+
+While `APP_DEBUG=true` the reset link is also shown on screen, so the flow can
+be completed even before a mail server is configured.
 
 ## Demo accounts
 
@@ -106,7 +145,7 @@ After running `database/setup.php`:
 
 ```
 app/
-  Core/           Front controller, router, view, database, auth, audit, upload
+  Core/           Front controller, router, view, database, auth, audit, mailer, upload
   Controllers/    Admin, Teacher, Student and Api controllers
   Helpers/        Global helper functions (e, url, asset, base_path, ...)
   Middleware/     Auth, guest and web (CSRF) middleware
@@ -116,6 +155,7 @@ public/           Document root, static assets
 resources/views/   Templates, layouts and partials
 routes/           web.php and api.php route tables
 storage/          Uploads and logs (not committed)
+tools/            Composer binary (not committed)
 ```
 
 ## Features

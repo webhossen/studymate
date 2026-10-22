@@ -18,7 +18,7 @@
 <?php if (!empty($devLink)): ?>
   <div class="sm-dev-note mt-4">
     <div class="sm-dev-note-title">Development mode</div>
-    <p class="mb-2">No mail server is configured, so here is the reset link:</p>
+    <p class="mb-2">Here is the reset link for this request:</p>
     <a href="<?= e($devLink) ?>" class="sm-dev-note-link"><?= e($devLink) ?></a>
   </div>
 <?php endif; ?>

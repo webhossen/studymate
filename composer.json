@@ -1,0 +1,20 @@
+{
+    "name": "studymate/studymate",
+    "description": "Academic management and student productivity platform for schools and colleges",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.0",
+        "ext-ctype": "*",
+        "ext-filter": "*",
+        "ext-iconv": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "phpmailer/phpmailer": "^7.1"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

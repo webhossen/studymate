@@ -85,6 +85,7 @@ class AuthController extends Controller {
 
         $user = $this->db->first('SELECT id, email FROM users WHERE email = ? LIMIT 1', [$email]);
         $link = null;
+        $mailSent = null;
 
         if ($user) {
             /* Any outstanding token for this address is now void. */
@@ -99,14 +100,14 @@ class AuthController extends Controller {
             $this->db->insert('INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))',
                 [$email, hash('sha256', $token)]);
 
-            $this->sendResetMail($user['email'], $link);
+            $mailSent = $this->sendResetMail($user['email'], $link);
         }
 
         /* The same message either way, so we never reveal whether the account exists. */
         Session::success('If an account exists for that address, a reset link has been sent.');
 
-        /* Without a mail server the link would be unreachable — surface it in
-           development so the flow can still be completed. */
+        /* If the mail could not be delivered the link would be unreachable, so
+           surface it in development where the flow can still be completed. */
         if ($link !== null && app_debug()) {
             $_SESSION['__reset_link'] = $link;
         }
@@ -179,20 +180,18 @@ class AuthController extends Controller {
      * can be retrieved when no mail server is configured.
      */
     private function sendResetMail(string $email, string $link): bool {
-        $appName = app_name();
-        $host = parse_url(app_url(), PHP_URL_HOST) ?: 'localhost';
-        $subject = 'Reset your ' . $appName . ' password';
-        $body = "Hello,\n\nWe received a request to reset the password for your {$appName} account.\n\n"
-              . "Open the link below to choose a new password:\n{$link}\n\n"
-              . "The link is valid for one hour. If you did not request a password reset you can ignore this email.\n";
+        $mailer = new \App\Core\Mailer();
+        $sent = $mailer->sendPasswordReset($email, $link);
 
-        $sent = @mail($email, $subject, $body, 'From: no-reply@' . $host);
+        foreach ($mailer->errors() as $error) {
+            error_log('Password reset email failed: ' . $error);
+        }
 
         $logDir = APP_ROOT . '/storage/logs';
         if (!is_dir($logDir)) @mkdir($logDir, 0770, true);
         @file_put_contents(
             $logDir . '/password-resets.log',
-            date('Y-m-d H:i:s') . ' ' . $email . ' ' . $link . ' ' . ($sent ? 'sent' : 'logged') . "\n",
+            date('Y-m-d H:i:s') . ' ' . $email . ' ' . $link . ' ' . ($sent ? 'sent' : 'failed') . "\n",
             FILE_APPEND
         );
 
